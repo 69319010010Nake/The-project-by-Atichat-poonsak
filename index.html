@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invention Project & Drive</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <nav class="bg-blue-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <h1 class="text-xl font-bold">💡 Invention Project & Drive</h1>
+    <div id="user-status" class="text-sm"><button onclick="showSection('auth-section')" class="bg-white text-blue-600 px-3 py-1.5 rounded-lg font-semibold">เข้าสู่ระบบ / สมัครสมาชิก</button></div>
+  </nav>
+  <main class="container mx-auto p-6 max-w-5xl">
+    <section id="auth-section" class="bg-white p-6 rounded-xl shadow-md max-w-md mx-auto mb-8">
+      <div class="flex border-b mb-4"><button id="tab-login" onclick="switchAuthTab('login')" class="w-1/2 py-2 font-bold text-blue-600 border-b-2 border-blue-600">เข้าสู่ระบบ</button><button id="tab-register" onclick="switchAuthTab('register')" class="w-1/2 py-2 font-bold text-gray-400">สมัครสมาชิก</button></div>
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4"><input type="email" id="login-username" placeholder="อีเมล" required class="w-full p-2 border rounded-lg"><input type="password" id="login-password" placeholder="รหัสผ่าน" required class="w-full p-2 border rounded-lg"><button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">เข้าสู่ระบบ</button></form>
+      <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden"><input type="email" id="reg-username" placeholder="อีเมล" required class="w-full p-2 border rounded-lg"><input type="password" id="reg-password" placeholder="รหัสผ่านอย่างน้อย 8 ตัวอักษร" minlength="8" required class="w-full p-2 border rounded-lg"><button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">สมัครสมาชิก</button></form>
+    </section>
+    <section id="main-dashboard" class="space-y-8 hidden">
+      <div class="bg-white p-6 rounded-xl shadow-md"><h2 class="text-lg font-bold mb-4">📁 ระบบจัดเก็บไฟล์ (Drive)</h2><form onsubmit="handleUploadFile(event)" class="flex gap-3 mb-6"><input type="file" id="file-input" required class="p-2 border rounded-lg flex-1"><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">อัปโหลดไฟล์</button></form><table class="w-full text-left"><thead><tr class="border-b bg-gray-50 text-gray-600 text-sm"><th class="p-3">ชื่อไฟล์</th><th class="p-3">ขนาด</th><th class="p-3 text-right">การจัดการ</th></tr></thead><tbody id="file-list-body"></tbody></table></div>
+      <div class="bg-white p-6 rounded-xl shadow-md"><h2 class="text-lg font-bold mb-4">🚀 โครงการสิ่งประดิษฐ์</h2><form onsubmit="handleCreateProject(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-lg"><input type="text" id="project-title" placeholder="ชื่อโครงการสิ่งประดิษฐ์" required class="p-2 border rounded-lg"><input type="text" id="project-category" placeholder="หมวดหมู่" required class="p-2 border rounded-lg"><textarea id="project-desc" placeholder="รายละเอียดโครงการ..." class="p-2 border rounded-lg md:col-span-2" rows="2"></textarea><button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg md:col-span-2">บันทึกโครงการ</button></form><div id="project-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+    </section>
+  </main>
+  <script>
+    const API_URL = '/api'; let token = localStorage.getItem('token') || '';
+    async function apiRequest(path, options = {}) { const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }; if (token) headers.Authorization = `Bearer ${token}`; const response = await fetch(`${API_URL}${path}`, { ...options, headers }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ'); return data; }
+    function showMessage(message) { alert(message); } function showSection(id) { document.getElementById(id).classList.remove('hidden'); }
+    function switchAuthTab(tab) { const login = tab === 'login'; document.getElementById('form-login').classList.toggle('hidden', !login); document.getElementById('form-register').classList.toggle('hidden', login); document.getElementById('tab-login').className = login ? 'w-1/2 py-2 font-bold text-blue-600 border-b-2 border-blue-600' : 'w-1/2 py-2 font-bold text-gray-400'; document.getElementById('tab-register').className = login ? 'w-1/2 py-2 font-bold text-gray-400' : 'w-1/2 py-2 font-bold text-green-600 border-b-2 border-green-600'; }
+    function setUser(user) { localStorage.setItem('user', JSON.stringify(user)); document.getElementById('auth-section').classList.add('hidden'); document.getElementById('main-dashboard').classList.remove('hidden'); document.getElementById('user-status').innerHTML = `<span class="mr-3">${user.username}</span><button onclick="handleLogout()" class="bg-white text-blue-600 px-3 py-1.5 rounded-lg font-semibold">ออกจากระบบ</button>`; loadDashboard(); }
+    function clearUser() { token = ''; localStorage.removeItem('token'); localStorage.removeItem('user'); document.getElementById('auth-section').classList.remove('hidden'); document.getElementById('main-dashboard').classList.add('hidden'); }
+    async function handleRegister(event) { event.preventDefault(); try { const username = document.getElementById('reg-username').value.trim(); await apiRequest('/auth/register', { method: 'POST', body: JSON.stringify({ username, password: document.getElementById('reg-password').value }) }); document.getElementById('form-register').reset(); document.getElementById('login-username').value = username; switchAuthTab('login'); showMessage('สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ'); } catch (error) { showMessage(error.message); } }
+    async function handleLogin(event) { event.preventDefault(); try { const data = await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username: document.getElementById('login-username').value.trim(), password: document.getElementById('login-password').value }) }); token = data.token; localStorage.setItem('token', token); setUser(data.user); } catch (error) { showMessage(error.message); } }
+    async function handleLogout() { try { await apiRequest('/auth/logout', { method: 'POST' }); } catch (error) { console.error(error); } clearUser(); }
+    async function loadDashboard() { try { renderFiles(await apiRequest('/files')); renderProjects(await apiRequest('/projects')); } catch (error) { if (error.message.includes('เข้าสู่ระบบ')) clearUser(); else showMessage(error.message); } }
+    function renderFiles(files) { document.getElementById('file-list-body').innerHTML = files.length ? files.map(file => `<tr class="border-b"><td class="p-3">${file.filename}</td><td class="p-3">${file.size}</td><td class="p-3 text-right"><button onclick="handleDeleteFile('${file.id}')" class="text-red-600">ลบ</button></td></tr>`).join('') : '<tr><td colspan="3" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลไฟล์</td></tr>'; }
+    function renderProjects(projects) { document.getElementById('project-list').innerHTML = projects.length ? projects.map(project => `<article class="border rounded-lg p-4"><h3 class="font-bold">${project.title}</h3><p class="text-sm text-blue-600">${project.category}</p><p class="mt-2 text-gray-600">${project.description || '-'}</p><button onclick="handleDeleteProject('${project.id}')" class="mt-3 text-sm text-red-600">ลบโครงการ</button></article>`).join('') : '<p class="text-gray-400 md:col-span-2">ยังไม่มีโครงการ</p>'; }
+    async function handleUploadFile(event) { event.preventDefault(); const file = document.getElementById('file-input').files[0]; try { await apiRequest('/files/upload', { method: 'POST', body: JSON.stringify({ filename: file.name, size: file.size }) }); event.target.reset(); loadDashboard(); } catch (error) { showMessage(error.message); } }
+    async function handleDeleteFile(id) { try { await apiRequest(`/files/${id}`, { method: 'DELETE' }); loadDashboard(); } catch (error) { showMessage(error.message); } }
+    async function handleCreateProject(event) { event.preventDefault(); const body = { title: document.getElementById('project-title').value.trim(), category: document.getElementById('project-category').value.trim(), description: document.getElementById('project-desc').value.trim() }; try { await apiRequest('/projects', { method: 'POST', body: JSON.stringify(body) }); event.target.reset(); loadDashboard(); } catch (error) { showMessage(error.message); } }
+    async function handleDeleteProject(id) { try { await apiRequest(`/projects/${id}`, { method: 'DELETE' }); loadDashboard(); } catch (error) { showMessage(error.message); } }
+    (async function restoreSession() { if (!token) return; try { setUser((await apiRequest('/auth/me')).user); } catch (error) { clearUser(); } }());
+  </script>
+</body>
+</html>
