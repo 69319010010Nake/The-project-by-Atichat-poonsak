@@ -24,7 +24,7 @@
   </main>
   <script>
     // Set this to the public URL of the deployed backend before publishing to GitHub Pages.
-    const DEPLOYED_API_URL = 'https://the-project-by-atichat-poonsak.onrender.com'; 
+    const DEPLOYED_API_URL = 'https://the-project-by-atichat-poonsak.onrender.com/api';
     const API_URL = DEPLOYED_API_URL || (window.location.protocol === 'file:' ? 'http://localhost:3000/api' : '/api'); let token = localStorage.getItem('token') || '';
     async function apiRequest(path, options = {}) { const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }; if (token) headers.Authorization = `Bearer ${token}`; const response = await fetch(`${API_URL}${path}`, { ...options, headers }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ'); return data; }
     function showMessage(message) { alert(message); } function showSection(id) { document.getElementById(id).classList.remove('hidden'); }
