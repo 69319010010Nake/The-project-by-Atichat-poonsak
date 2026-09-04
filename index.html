@@ -23,7 +23,7 @@
     </section>
   </main>
   <script>
-    const API_URL = '/api'; let token = localStorage.getItem('token') || '';
+    const API_URL = window.location.protocol === 'file:' ? 'http://localhost:3000/api' : '/api'; let token = localStorage.getItem('token') || '';
     async function apiRequest(path, options = {}) { const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }; if (token) headers.Authorization = `Bearer ${token}`; const response = await fetch(`${API_URL}${path}`, { ...options, headers }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ'); return data; }
     function showMessage(message) { alert(message); } function showSection(id) { document.getElementById(id).classList.remove('hidden'); }
     function switchAuthTab(tab) { const login = tab === 'login'; document.getElementById('form-login').classList.toggle('hidden', !login); document.getElementById('form-register').classList.toggle('hidden', login); document.getElementById('tab-login').className = login ? 'w-1/2 py-2 font-bold text-blue-600 border-b-2 border-blue-600' : 'w-1/2 py-2 font-bold text-gray-400'; document.getElementById('tab-register').className = login ? 'w-1/2 py-2 font-bold text-gray-400' : 'w-1/2 py-2 font-bold text-green-600 border-b-2 border-green-600'; }
